@@ -94,8 +94,8 @@ void externalCom(char *args[]) {                // 外部コマンドを実行�
     if(ifile != NULL){
       redirect(0, ifile, O_RDONLY);
     }
-    if(ifile != NULL){
-      redirect(1, ifile, O_WRONLY|O_TRUNC|O_CREAT);
+    if(ofile != NULL){
+      redirect(1, ofile, O_WRONLY|O_TRUNC|O_CREAT);
     }
     execvp(args[0], args);                      //     コマンドを実行
     perror(args[0]);
@@ -142,30 +142,28 @@ int main() {
 }
 
 /*
-% make
+% make     
 cc -D_GNU_SOURCE -Wall -std=c99 -o myshell myshell.c
-% cat a.txt
-% ls > a.txt
-% cat a.txt
+% ./myshell
+Command: ls
+Makefile	README.pdf	myshell
+README.md	a.txt		myshell.c
+Command: cat a.txt
+Command: ls > a.txt
+Command: cat < a.txt
 Makefile
 README.md
 README.pdf
 a.txt
 myshell
 myshell.c
-% cat < a.txt
-Makefile
-README.md
+Command: grep .pdf < a.txt
 README.pdf
-a.txt
-myshell
-myshell.c
-% a > a.txt
-zsh: command not found: a
-% a < a.txt 
-zsh: command not found: a
-% cat < a.txt > b.txt
-% cat < b.txt
+Command: grep .pdf < a.txt > b.txt
+Command: cat b.txt
+README.pdf
+Command: cat < a.txt > b.txt
+Command: cat b.txt
 Makefile
 README.md
 README.pdf
@@ -173,4 +171,10 @@ a.txt
 b.txt
 myshell
 myshell.c
+Command: cat < aa.txt
+aa.txt: No such file or directory
+Command: grep .pdf > /aaa.txt
+/aaa.txt: Read-only file system
+Command: ^D
+
 */
