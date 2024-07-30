@@ -68,7 +68,6 @@ void findRedirect(char *args[]) {               // リダイレクトの指示�
 }
 
 void redirect(int fd, char *path, int flag) {   // リダイレクト処理をする
-  //
   // externalCom 関数のどこかから呼び出される
   //
   // fd   : リダイレクトするファイルディスクリプタ
@@ -77,6 +76,12 @@ void redirect(int fd, char *path, int flag) {   // リダイレクト処理を�
   //        入力の場合 O_RDONLY
   //        出力の場合 O_WRONLY|O_TRUNC|O_CREAT
   //
+  close(fd);
+  fd = open(path, flag, 0644);
+  if(fd < 0){
+    perror(path);
+    exit(1);
+  }
 }
 
 void externalCom(char *args[]) {                // 外部コマンドを実行する
@@ -85,7 +90,13 @@ void externalCom(char *args[]) {                // 外部コマンドを実行�
     perror("fork");                             //     fork 失敗
     exit(1);                                    //     非常事態，親を終了
   }
-  if (pid==0) {                                 //   子プロセスなら
+  if (pid == 0) {                                 //   子プロセスなら
+    if(ifile != NULL){
+      redirect(0, ifile, O_RDONLY);
+    }
+    if(ifile != NULL){
+      redirect(1, ifile, O_WRONLY|O_TRUNC|O_CREAT);
+    }
     execvp(args[0], args);                      //     コマンドを実行
     perror(args[0]);
     exit(1);
@@ -130,3 +141,36 @@ int main() {
   return 0;
 }
 
+/*
+% make
+cc -D_GNU_SOURCE -Wall -std=c99 -o myshell myshell.c
+% cat a.txt
+% ls > a.txt
+% cat a.txt
+Makefile
+README.md
+README.pdf
+a.txt
+myshell
+myshell.c
+% cat < a.txt
+Makefile
+README.md
+README.pdf
+a.txt
+myshell
+myshell.c
+% a > a.txt
+zsh: command not found: a
+% a < a.txt 
+zsh: command not found: a
+% cat < a.txt > b.txt
+% cat < b.txt
+Makefile
+README.md
+README.pdf
+a.txt
+b.txt
+myshell
+myshell.c
+*/
